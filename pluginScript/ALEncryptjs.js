@@ -3,17 +3,17 @@
  *  encryptjs: https://www.npmjs.com/package/encryptjs/v/2.0.0
  */
 
- var ALEncryptjs = (function(){
-     var encryptjs = {
-         name:'ALEncryptjs',
-         version:'1.0.0',
-         /**
+var ALEncryptjs = (function(){
+    var encryptjs = {
+        name:'ALEncryptjs',
+        version:'1.0.0',
+        /**
           * 加密方法
           * @param {文本} planintext 
           * @param {密钥} password 
           * @param {*} nBits 
           */
-         encrypt:function(plaintext,password,nBits){
+        encrypt:function(plaintext,password,nBits){
             var blockSize = 16;  // block size 固定为 16 bytes / 128 bits (Nb=4)
             // 标准: 允许 128/192/256 bit keys
             if (!(nBits==128 || nBits==192 || nBits==256)) return ''; 
@@ -78,15 +78,15 @@
             ciphertext = ciphertext.base64Encode();
     
             return ciphertext;
-         },
+        },
 
-         /**
+        /**
           * 解密方法
           * @param {密文} ciphertext 
           * @param {密钥} password 
           * @param {*} nBits 
           */
-         decrypt:function(ciphertext, password, nBits) {
+        decrypt:function(ciphertext, password, nBits) {
             var blockSize = 16;  // block size fixed at 16 bytes / 128 bits (Nb=4) for AES
             if (!(nBits==128 || nBits==192 || nBits==256)) return ''; // standard allows 128/192/256 bit keys
             ciphertext = String(ciphertext).base64Decode();
@@ -140,9 +140,40 @@
     
             return plaintext;
         }
-     };
+    };
 
-
+    /** 
+     * 为字符串设置一些编码函数 
+     */
+    if (typeof String.prototype.utf8Encode == 'undefined') {
+        String.prototype.utf8Encode = function() {
+            return unescape( encodeURIComponent( this ) );
+        };
+    }
+    if (typeof String.prototype.utf8Decode == 'undefined') {
+        String.prototype.utf8Decode = function() {
+            try {
+                return decodeURIComponent( escape( this ) );
+            } catch (e) {
+                return this; // invalid UTF-8? return as-is
+            }
+        };
+    }
+    if (typeof String.prototype.base64Encode == 'undefined') {
+        String.prototype.base64Encode = function() {
+            if (typeof btoa != 'undefined') return btoa(this); // browser
+            if (typeof Buffer != 'undefined') return new Buffer(this, 'utf8').toString('base64'); // Node.js
+            throw new Error('No Base64 Encode');
+        };
+    }
+    if (typeof String.prototype.base64Decode == 'undefined') {
+        String.prototype.base64Decode = function() {
+            if (typeof atob != 'undefined') return atob(this); // browser
+            if (typeof Buffer != 'undefined') return new Buffer(this, 'base64').toString('utf8'); // Node.js
+            throw new Error('No Base64 Decode');
+        };
+    }
+     
 
      /**
      * Rijndael cipher encryption routines,
@@ -344,4 +375,4 @@
                 [0x36, 0x00, 0x00, 0x00] ]; 
 
      return encryptjs;
- })();
+})();
